@@ -2,7 +2,7 @@
 name = "nvidia-nim-benchmarks"
 version = "0.1.0"
 description = "Benchmarks NIM chat models for TPS, renders static leaderboard."
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "httpx",
     "python-dotenv",
