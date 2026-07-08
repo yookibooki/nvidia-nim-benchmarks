@@ -10,6 +10,52 @@ TPS_PATH = "_data/tps.csv"
 INTELLIGENCE_PATH = "_data/intelligence.csv"
 OUTPUT_PATH = "index.html"
 
+# Mapping from NIM API model names to intelligence.csv names
+NIM_TO_INTELLIGENCE = {
+    "nvidia/nemotron-3-nano-30b-a3b": "nvidia/nvidia-nemotron-3-nano-30b-a3b",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": "nvidia/nemotron-3-nano-omni-30b-a3b",
+    "stepfun-ai/step-3.5-flash": "stepfun/step-3-5-flash",
+    "stepfun-ai/step-3.7-flash": "stepfun/step-3-7-flash",
+    "mistralai/mistral-small-4-119b-2603": "mistral/mistral-small-4",
+    "nvidia/nemotron-3-ultra-550b-a55b": "nvidia/nvidia-nemotron-3-ultra-550b-a55b",
+    "sarvamai/sarvam-m": "sarvam/sarvam-m-reasoning",
+    "google/diffusiongemma-26b-a4b-it": "google/diffusiongemma-26b-a4b",
+    "minimaxai/minimax-m2.7": "minimax/minimax-m2-7",
+    "abacusai/dracarys-llama-3.1-70b-instruct": None,  # Not in intelligence.csv
+    "bytedance/seed-oss-36b-instruct": "bytedance_seed/seed-oss-36b-instruct",
+    "deepseek-ai/deepseek-v4-flash": "deepseek/deepseek-v4-flash",
+    "deepseek-ai/deepseek-v4-pro": "deepseek/deepseek-v4-pro",
+    "google/gemma-2-2b-it": None,  # Not in intelligence.csv
+    "google/gemma-3n-e2b-it": "google/gemma-3n-e2b",
+    "google/gemma-3n-e4b-it": "google/gemma-3n-e4b",
+    "google/gemma-4-31b-it": "google/gemma-4-31b",
+    "meta/llama-3.1-70b-instruct": "meta/llama-3-1-instruct-70b",
+    "meta/llama-3.1-8b-instruct": "meta/llama-3-1-instruct-8b",
+    "meta/llama-3.2-1b-instruct": "meta/llama-3-2-instruct-1b",
+    "meta/llama-3.2-3b-instruct": "meta/llama-3-2-instruct-3b",
+    "meta/llama-3.3-70b-instruct": "meta/llama-3-3-instruct-70b",
+    "meta/llama-4-maverick-17b-128e-instruct": "meta/llama-4-maverick",
+    "microsoft/phi-4-mini-instruct": "azure/phi-4-mini",
+    "minimaxai/minimax-m3": "minimax/minimax-m3",
+    "mistralai/ministral-14b-instruct-2512": "mistral/ministral-3-14b",
+    "mistralai/mistral-large-3-675b-instruct-2512": "mistral/mistral-large-3",
+    "mistralai/mistral-medium-3.5-128b": "mistral/mistral-medium-3-5",
+    "mistralai/mistral-nemotron": None,  # Not in intelligence.csv
+    "mistralai/mixtral-8x7b-instruct-v0.1": "mistral/mixtral-8x7b-instruct",
+    "moonshotai/kimi-k2.6": "kimi/kimi-k2-6",
+    "nvidia/llama-3.1-nemotron-nano-8b-v1": "nvidia/llama-3-1-nemotron-nano-4b-reasoning",
+    "nvidia/llama-3.3-nemotron-super-49b-v1": "nvidia/llama-3-3-nemotron-super-49b",
+    "nvidia/llama-3.3-nemotron-super-49b-v1.5": "nvidia/llama-nemotron-super-49b-v1-5",
+    "nvidia/nemotron-3-super-120b-a12b": "nvidia/nvidia-nemotron-3-super-120b-a12b",
+    "nvidia/nemotron-mini-4b-instruct": "nvidia/nvidia-nemotron-3-nano-4b",
+    "qwen/qwen3-next-80b-a3b-instruct": "alibaba/qwen3-next-80b-a3b-instruct",
+    "qwen/qwen3.5-122b-a10b": "alibaba/qwen3-5-122b-a10b",
+    "qwen/qwen3.5-397b-a17b": "alibaba/qwen3-5-397b-a17b",
+    "stockmark/stockmark-2-100b-instruct": None,  # Not in intelligence.csv
+    "upstage/solar-10.7b-instruct": "upstage/solar-mini",
+    "z-ai/glm-5.2": "zai/glm-5-2",
+}
+
 
 def main():
     # Read intelligence.csv for lookup
@@ -28,7 +74,8 @@ def main():
 
     # Sort by intelligence index descending (highest first)
     def sort_key(row):
-        val = intelligence.get(row["name"], "0")
+        intel_name = NIM_TO_INTELLIGENCE.get(row["name"], row["name"])
+        val = intelligence.get(intel_name, "0") if intel_name else "0"
         try:
             return -float(val)
         except (ValueError, TypeError):
@@ -40,7 +87,9 @@ def main():
     rows_html = []
     for row in models:
         name = row["name"]
-        intel = intelligence.get(name, "-")
+        # Use mapping to find intelligence score
+        intel_name = NIM_TO_INTELLIGENCE.get(name, name)
+        intel = intelligence.get(intel_name, "-") if intel_name else "-"
         ttft_raw = row["ttft"]
         tps_raw = row["tps"]
 
