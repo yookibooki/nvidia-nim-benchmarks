@@ -64,11 +64,16 @@ jobs:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         run: python3 run_benchmark.py
 
+      - name: Generate index.html
+        run: |
+          python3 gen_html.py
+          git add index.html
+
       - name: Commit data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/tps.csv data/models.txt data/endpoint_snapshot.json
+           git add data/tps.csv data/models.txt data/endpoint_snapshot.json index.html
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
