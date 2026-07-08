@@ -1,10 +1,19 @@
 [project]
 name = "nvidia-nim-benchmarks"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.14"
+description = "Benchmark NVIDIA NIM chat models for tokens-per-second and publish a leaderboard."
+readme = "AGENTS.md"
+requires-python = ">=3.10"
 dependencies = [
+    "httpx>=0.28.1",
     "python-dotenv>=1.2.2",
     "requests>=2.34.2",
+    "huggingface_hub>=0.25.0",
 ]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["filter_models", "run_benchmark", "fetch_intelligence", "hf_slug"]

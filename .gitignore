@@ -2,3 +2,7 @@
 __pycache__/
 .venv/
 artifacts/
+_site/
+vendor/
+.bundle/
+nvidia_nim_benchmarks.egg-info/

@@ -1,0 +1,80 @@
+name: daily
+
+on:
+  schedule:
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-benchmark
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          cache: "pip"
+
+      - name: Install dependencies
+        run: python3 -m pip install .
+
+      - name: Check if model catalog changed
+        id: catalog
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          import filter_models as fm
+
+          ids = fm.fetch_model_ids()
+          current = fm.model_list_hash(ids)
+          try:
+              with open(fm.SNAPSHOT_PATH) as f:
+                  stored = json.load(f).get("hash")
+          except (FileNotFoundError, json.JSONDecodeError, KeyError, AttributeError):
+              stored = None
+
+          changed = current != stored
+          print(f"catalog hash current={current[:12]} stored={str(stored)[:12]} changed={changed}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"changed={'true' if changed else 'false'}\n")
+          PY
+
+      - name: Regenerate model list (if catalog changed)
+        if: steps.catalog.outputs.changed == 'true'
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: python3 filter_models.py
+
+      - name: Run run_benchmark.py
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: python3 run_benchmark.py
+
+      - name: Generate index.html
+        run: python3 generate_index.py
+
+      - name: Commit data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add _data/tps.csv _data/models.txt _data/endpoint_snapshot.json index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Data update"
+            git push
+          fi
