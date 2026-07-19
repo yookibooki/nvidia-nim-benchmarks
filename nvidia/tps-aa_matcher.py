@@ -24,6 +24,8 @@ NAMESPACE_TO_CREATOR: dict[str, str] = {
     "sarvamai": "sarvam",
     "stepfun-ai": "stepfun",
     "stockmark": "motif-technologies",
+    "thinkingmachines": "thinking-machines",
+    "poolside": "poolside",
     "upstage": "upstage",
     "z-ai": "zai",
 }
@@ -78,6 +80,7 @@ MANUAL_INTELLIGENCE: dict[str, int] = {
     "nvidia/nemotron-mini-4b-instruct": 5,
     "stockmark/stockmark-2-100b-instruct": 9,
     "upstage/solar-10.7b-instruct": 2,
+    "poolside/laguna-xs-2.1": 15,
 }
 
 

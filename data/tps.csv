@@ -29,14 +29,14 @@ nvidia/nemotron-nano-12b-v2-vl,nvidia,5,-,-
 nvidia/nvidia-nemotron-nano-9b-v2,nvidia,8,0,54
 openai/gpt-oss-120b,nvidia,24,-,-
 openai/gpt-oss-20b,nvidia,15,5,205
-poolside/laguna-xs-2.1,nvidia,,2,140
+poolside/laguna-xs-2.1,nvidia,15,2,140
 qwen/qwen3-next-80b-a3b-instruct,nvidia,14,-,-
 qwen/qwen3.5-122b-a10b,nvidia,33,-,-
 qwen/qwen3.5-397b-a17b,nvidia,34,0,68
 sarvamai/sarvam-m,nvidia,3,0,35
 stepfun-ai/step-3.5-flash,nvidia,26,-,-
 stepfun-ai/step-3.7-flash,nvidia,30,7,158
-thinkingmachines/inkling,nvidia,,1,144
+thinkingmachines/inkling,nvidia,41,1,144
 upstage/solar-10.7b-instruct,nvidia,2,-,-
 z-ai/glm-5.2,nvidia,52,1,30
 cohere/north-mini-code:free,openrouter,21,5,443
