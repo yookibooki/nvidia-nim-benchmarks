@@ -1,0 +1,104 @@
+name: daily
+
+on:
+  schedule:
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-benchmark
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    env:
+      NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+      NOUS_API_KEY: ${{ secrets.NOUS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python3 -m pip install -r requirements.txt
+
+      - name: Filter models
+        run: |
+          pids=()
+          for prov in nvidia openrouter google mistral opencode nous; do
+            (
+              echo "--- $prov filter ---"
+              python3 "$prov/filter_models.py" || echo "WARNING: $prov filter failed"
+            ) &
+            pids+=($!)
+          done
+          for pid in "${pids[@]}"; do wait "$pid"; done
+      - name: Benchmark
+        run: |
+          pids=()
+          for prov in nvidia openrouter google mistral opencode nous; do
+            (
+              echo "--- $prov benchmark ---"
+              python3 "$prov/run_benchmark.py" || echo "WARNING: $prov benchmark failed"
+            ) &
+            pids+=($!)
+          done
+          for pid in "${pids[@]}"; do wait "$pid"; done
+      - name: Match AA intelligence
+        run: |
+          pids=()
+          for prov in nvidia openrouter google mistral opencode nous; do
+            (
+              echo "--- $prov matcher ---"
+              python3 "$prov/tps-aa_matcher.py" || echo "WARNING: $prov matcher failed"
+            ) &
+            pids+=($!)
+          done
+          for pid in "${pids[@]}"; do wait "$pid"; done
+
+      - name: Generate merged index.html
+        run: python3 gen_html.py
+
+      - name: Commit data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/tps.csv index.html nvidia/data/ openrouter/data/ google/data/ mistral/data/ opencode/data/ nous/data/
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Data update"
+            for attempt in 1 2; do
+              if git push; then
+                break
+              fi
+              if [ "$attempt" = "2" ]; then
+                echo "Push failed after rebase retry" >&2
+                exit 1
+              fi
+              echo "Push rejected, fetching and rebasing..."
+              git fetch origin main
+              GIT_SEQUENCE_EDITOR=true git rebase origin/main
+            done
+          fi
+
+      - name: Upload Pages artifact
+        if: success()
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        if: success()
+        id: deployment
+        uses: actions/deploy-pages@v5
