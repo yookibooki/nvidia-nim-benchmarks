@@ -10,7 +10,6 @@ meta/llama-4-maverick-17b-128e-instruct
 minimaxai/minimax-m2.7
 minimaxai/minimax-m3
 mistralai/ministral-14b-instruct-2512
-mistralai/mistral-large-3-675b-instruct-2512
 mistralai/mistral-medium-3.5-128b
 mistralai/mistral-nemotron
 mistralai/mistral-small-4-119b-2603
@@ -30,7 +29,6 @@ openai/gpt-oss-120b
 openai/gpt-oss-20b
 poolside/laguna-xs-2.1
 qwen/qwen3-next-80b-a3b-instruct
-qwen/qwen3.5-397b-a17b
 sarvamai/sarvam-m
 stepfun-ai/step-3.5-flash
 stepfun-ai/step-3.7-flash
